@@ -18,6 +18,11 @@ todo(_Request) :-
     reply_html_page(
        [title('Prolog TODO exercise')],
        [h1('TODO'),
-        ul([li(['Prolog Web Exercise']),
-            li(['Class assignment'])])]).
+        ul([\todo_list(['Prolog Web Exercise', 'Class assignment'])])]).
+
+todo_list([]) -->
+    html([]).
+todo_list([Item|Rest]) -->
+    html(li([Item])),
+    todo_list(Rest).
    
