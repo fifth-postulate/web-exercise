@@ -8,4 +8,6 @@ Start the server with the following command
 swipl -g go server.pl
 ```
 
-and point a browser to [`http://localhost:8636`](http://localhost:8636). 
+and point a browser to [`http://localhost:8636`](http://localhost:8636).
+
+If you want to reload your changes query `make.` in the Prolog REPL.
