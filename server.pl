@@ -4,6 +4,7 @@
 
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).
 
 go :-
     server(8636).
@@ -11,8 +12,12 @@ go :-
 server(Port) :-
     http_server(http_dispatch, [port(Port)]).
 
-:- http_handler(/, hello, []).
+:- http_handler(/, todo, []).
 
-hello(_Request) :-
-    format('Content-type: text/plain~n~n'),
-    format('Hello World!~n').
+todo(_Request) :-
+    reply_html_page(
+       [title('Prolog TODO exercise')],
+       [h1('TODO'),
+        ul([li(['Prolog Web Exercise']),
+            li(['Class assignment'])])]).
+   
