@@ -4,8 +4,10 @@
 
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_files)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module('prolog/todos').
 
 go :-
@@ -14,16 +16,20 @@ go :-
 server(Port) :-
     http_server(http_dispatch, [port(Port)]).
 
-:- http_handler(/, todo, []).
-:- http_handler(root('todo'), add_todo, [methods([post])]).
-:- http_handler(root('remove'), remove_todo, [methods([post])]).
+http:location(assets, '/static', []).
+user:file_search_path(static_files, web).
 
+:- http_handler(/, todo, []).
+:- http_handler(root(todo), add_todo, [methods([post])]).
+:- http_handler(root(remove), remove_todo, [methods([post])]).
+:- http_handler(assets('.'), serve_files, [prefix]).
 
 todo(_Request) :-
     findall(TodoItem, to_do(TodoItem), TodoItems),
     reply_html_page(
        [title('Prolog TODO exercise')],
        [h1('TODO'),
+        \html_requires(stylesheets),
         \todo_entry,
         ul([\todo_list(TodoItems)])]).
 
@@ -55,3 +61,10 @@ remove_todo(Request) :-
     http_parameters(Request, [stale_todo(TODO, [string])]),
     retractall(to_do(TODO)),
     todo(Request).
+
+serve_files(Request) :-
+    http_reply_from_files(static_files('.'), [], Request).
+serve_files(Request) :-
+    http_404([], Request).
+
+:- html_resource(stylesheets, [virtual(true), requires([assets('basic.css')])]).
