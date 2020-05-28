@@ -6,6 +6,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_files)).
+:- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module('prolog/todos').
@@ -30,7 +31,7 @@ user:body(todo_style, Body) -->
     ])).
 
 todo(_Request) :-
-    findall(TodoItem, to_do(TodoItem), TodoItems),
+    session_todos(TodoItems),
     reply_html_page(
         todo_style,
        [title('Prolog TODO exercise')],
@@ -38,6 +39,12 @@ todo(_Request) :-
         \html_requires(stylesheets),
         \todo_entry,
         ul([\todo_list(TodoItems)])]).
+
+session_todos(TodoItems) :-
+    http_session_data(to_dos(TodoItems)), !.
+
+session_todos([]) :-
+    http_session_assert(to_dos([])).
 
 todo_entry -->
     html(form([method(post), action(todo)], [
@@ -60,13 +67,20 @@ remove_item(Item) -->
 
 add_todo(Request) :-
     http_parameters(Request, [fresh_todo(TODO, [string])]),
-    assert(to_do(TODO)),
+    session_todos(TodoItems),
+    update_session_todos([TODO|TodoItems]),
     todo(Request).
 
 remove_todo(Request) :-
     http_parameters(Request, [stale_todo(TODO, [string])]),
-    retractall(to_do(TODO)),
+    session_todos(TodoItems),
+    select(TODO, TodoItems, RemainingTodos),
+    update_session_todos(RemainingTodos),
     todo(Request).
+
+update_session_todos(TodoItems) :-
+    http_session_retractall(to_dos(_)),
+    http_session_assert(to_dos(TodoItems)).
 
 serve_files(Request) :-
     http_reply_from_files(static_files('.'), [], Request).
