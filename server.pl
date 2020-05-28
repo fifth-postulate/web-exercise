@@ -20,7 +20,14 @@ todo(_Request) :-
     reply_html_page(
        [title('Prolog TODO exercise')],
        [h1('TODO'),
+        \todo_entry,
         ul([\todo_list(TodoItems)])]).
+
+todo_entry -->
+    html(form([
+        input([input(text)], []),
+        button(['todo'])
+    ])).
 
 todo_list([]) -->
     html([]).
