@@ -5,6 +5,7 @@
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_parameters)).
 :- use_module('prolog/todos').
 
 go :-
@@ -14,6 +15,7 @@ server(Port) :-
     http_server(http_dispatch, [port(Port)]).
 
 :- http_handler(/, todo, []).
+:- http_handler(root('todo'), post_todo, [methods([post])]).
 
 todo(_Request) :-
     findall(TodoItem, to_do(TodoItem), TodoItems),
@@ -24,9 +26,9 @@ todo(_Request) :-
         ul([\todo_list(TodoItems)])]).
 
 todo_entry -->
-    html(form([
-        input([input(text)], []),
-        button(['todo'])
+    html(form([method(post), action(todo)], [
+        input([input(text), name('fresh_todo')], []),
+        button([type(submit)], ['todo'])
     ])).
 
 todo_list([]) -->
@@ -34,4 +36,8 @@ todo_list([]) -->
 todo_list([Item|Rest]) -->
     html(li([Item])),
     todo_list(Rest).
-   
+
+post_todo(Request) :-
+    http_parameters(Request, [fresh_todo(TODO, [string])]),
+    assert(to_do(TODO)),
+    todo(Request).
