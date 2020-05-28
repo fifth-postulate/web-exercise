@@ -24,11 +24,17 @@ user:file_search_path(static_files, web).
 :- http_handler(root(remove), remove_todo, [methods([post])]).
 :- http_handler(assets('.'), serve_files, [prefix]).
 
+user:body(todo_style, Body) -->
+    html(body([
+        div([h1('Web Assignment'), Body])
+    ])).
+
 todo(_Request) :-
     findall(TodoItem, to_do(TodoItem), TodoItems),
     reply_html_page(
+        todo_style,
        [title('Prolog TODO exercise')],
-       [h1('TODO'),
+       [h2('TODO'),
         \html_requires(stylesheets),
         \todo_entry,
         ul([\todo_list(TodoItems)])]).
